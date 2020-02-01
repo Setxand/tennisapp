@@ -6,6 +6,7 @@ import com.tennisapp.client.TennisClient;
 import com.tennisapp.dto.TableModelDto;
 import com.tennisapp.model.User;
 import com.tennisapp.service.UserService;
+import com.tennisapp.util.DictionaryUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,8 @@ import telegram.Message;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
+
+import static com.tennisapp.config.DictionaryKeysConfig.GAME_STARTED;
 
 @Component
 public class ServerStart {
@@ -30,7 +33,7 @@ public class ServerStart {
         telegramClient.setWebHooks();
     }
 
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 120000)
     public void checkAvailability() {
         TableModelDto tableModel = tennisClient.getTableModel(userService.getUserAdminCookie());
         TableModelDto.NowPlaying nowPlaying = tableModel.nowPlaying;
@@ -42,7 +45,7 @@ public class ServerStart {
 
             Message message = new Message(new Chat(user.getChatId()));
             message.setPlatform(Platform.COMMON);
-            telegramClient.simpleMessage("Your game is started!", message);
+            telegramClient.simpleMessage(DictionaryUtil.getDictionaryValue(GAME_STARTED), message);
         }
 
     }
