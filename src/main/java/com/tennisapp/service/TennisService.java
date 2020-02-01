@@ -28,8 +28,11 @@ public class TennisService {
     }
 
     @Transactional
-    public void bookTable(Message message) {
-        User user = userService.getUser(message.getChat().getId());
+    public void bookTable(Message message, User user) {
         tennisClient.bookTable(message, user.getLoginCookie());
+    }
+
+    public void cancelGame(User user) {
+        tennisClient.cancelGame(user.getLoginCookie());
     }
 }

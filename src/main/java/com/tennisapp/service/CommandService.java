@@ -28,7 +28,7 @@ public class CommandService {
 
         switch (command) {
             case "/start":
-                telegramClient.helloMessage(message);
+                start(message, user);
                 break;
 
             case "/login":
@@ -36,16 +36,30 @@ public class CommandService {
                 break;
 
             case "/booktable":
-                bookTable(message);
+                bookTable(message, user);
                 break;
 
             case "/reentercredentials":
                 reenterCredentials(message, user);
                 break;
 
+            case "/cancelgame":
+                cancelGame(message, user);
+                break;
+
             default:
                 throw new RuntimeException();
         }
+    }
+
+    private void start(Message message, User user) {
+        telegramClient.helloMessage(message);
+        login(message, user);
+    }
+
+    private void cancelGame(Message message, User user) {
+        tennisService.cancelGame(user);
+        telegramClient.simpleMessage(DictionaryUtil.getDictionaryValue(GAME_CANCELLED), message);
     }
 
     public void login(Message message, User user) {
@@ -70,8 +84,8 @@ public class CommandService {
         login(message, user);
     }
 
-    private void bookTable(Message message) {
-        tennisService.bookTable(message);
+    private void bookTable(Message message, User user) {
+        tennisService.bookTable(message, user);
         telegramClient.simpleMessage(DictionaryUtil.getDictionaryValue(TABLE_BOOKED), message);
     }
 }

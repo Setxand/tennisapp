@@ -7,5 +7,6 @@ public enum DictionaryKeysConfig {
     TABLE_BOOKED,
     TENNIS_ID_INVALID,
     USER_ID_INVALID,
+    GAME_CANCELLED
 
 }

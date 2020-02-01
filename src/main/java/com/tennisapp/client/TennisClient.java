@@ -3,6 +3,8 @@ package com.tennisapp.client;
 import com.tennisapp.config.UrlTennis;
 import com.tennisapp.dto.LoginForm;
 import com.tennisapp.dto.TableModelDto;
+import com.tennisapp.model.User;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -83,6 +85,12 @@ public class TennisClient {
         HttpEntity<Object> requestBody = createEntityWithHeaders(null, loginCookie);
         restTemplate
                 .exchange(urlTennis.getAcceptInvitationUrl(), HttpMethod.POST, requestBody, Void.class);
+    }
+
+    public void cancelGame(String loginCookie) {
+        HttpEntity<Object> requestObject = createEntityWithHeaders(null, loginCookie);
+
+        restTemplate.exchange(urlTennis.getCancelGameUrl(), HttpMethod.POST, requestObject, Void.class).getBody();
     }
 
     private HttpEntity<Object> createEntityWithHeaders(HttpEntity body, String cookie) {

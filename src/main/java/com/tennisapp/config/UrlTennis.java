@@ -16,5 +16,6 @@ public class UrlTennis {
     private String showTableUrl;
     private String getProfileUrl;
     private String acceptInvitationUrl;
+    private String cancelGameUrl;
 
 }
