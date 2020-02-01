@@ -3,11 +3,15 @@ package com.tennisapp.service;
 
 import com.tennisapp.model.User;
 import com.tennisapp.repository.UserRepository;
+import com.tennisapp.util.DictionaryUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import telegram.Message;
 
 import javax.transaction.Transactional;
+
+import static com.tennisapp.config.DictionaryKeysConfig.TENNIS_ID_INVALID;
+import static com.tennisapp.config.DictionaryKeysConfig.USER_ID_INVALID;
 
 @Service
 public class UserService {
@@ -36,11 +40,12 @@ public class UserService {
     }
 
     public User getUser(Integer userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("Invalid user ID"));
+        return userRepository.findById(userId).orElseThrow(
+                () -> new IllegalArgumentException(DictionaryUtil.getDictionaryValue(USER_ID_INVALID)));
     }
 
     public User getUserByTennisId(String tennisId) {
         return userRepository.findByTennisId(tennisId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid tennis ID"));
+                .orElseThrow(() -> new IllegalArgumentException(DictionaryUtil.getDictionaryValue(TENNIS_ID_INVALID)));
     }
 }

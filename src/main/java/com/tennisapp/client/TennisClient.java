@@ -24,6 +24,7 @@ public class TennisClient {
     private static final String COOKIE_HEADER = "Cookie";
 
     private final RestTemplate restTemplate;
+
     private final UrlTennis urlTennis;
 
     public TennisClient(UrlTennis urlTennis) {
@@ -66,14 +67,6 @@ public class TennisClient {
                 .getBody();
     }
 
-    private HttpEntity<Object> createEntityWithHeaders(HttpEntity body, String cookie) {
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add(COOKIE_HEADER, cookie);
-        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-
-        return new HttpEntity<Object>(null, httpHeaders);
-    }
-
     public Map<String, Object> getProfileId(String cookie) {
         HttpEntity<Object> requestObject = createEntityWithHeaders(null, cookie);
 
@@ -90,5 +83,13 @@ public class TennisClient {
         HttpEntity<Object> requestBody = createEntityWithHeaders(null, loginCookie);
         restTemplate
                 .exchange(urlTennis.getAcceptInvitationUrl(), HttpMethod.POST, requestBody, Void.class);
+    }
+
+    private HttpEntity<Object> createEntityWithHeaders(HttpEntity body, String cookie) {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add(COOKIE_HEADER, cookie);
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+
+        return new HttpEntity<Object>(null, httpHeaders);
     }
 }

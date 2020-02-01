@@ -1,11 +1,14 @@
 package com.tennisapp.service;
 
 import com.tennisapp.model.User;
+import com.tennisapp.util.DictionaryUtil;
 import org.springframework.stereotype.Service;
 import telegram.Message;
 import telegram.client.TelegramClient;
 
 import javax.transaction.Transactional;
+
+import static com.tennisapp.config.DictionaryKeysConfig.*;
 
 @Service
 public class CommandService {
@@ -50,11 +53,11 @@ public class CommandService {
         if (user.getLogin() != null && user.getPassword() != null) {
             tennisService.login(user);
             telegramClient
-                    .simpleMessage("Successfully logged in", message);
+                    .simpleMessage(DictionaryUtil.getDictionaryValue(LOGIN_SUCCESS), message);
 
         } else {
             telegramClient
-                    .simpleMessage("Enter your login and password through the space (first login) :", message);
+                    .simpleMessage(DictionaryUtil.getDictionaryValue(LOGIN_PROCESS), message);
 
             user.setStatus(User.UserStatus.LOGIN);
         }
@@ -69,6 +72,6 @@ public class CommandService {
 
     private void bookTable(Message message) {
         tennisService.bookTable(message);
-        telegramClient.simpleMessage("You booked a table", message);
+        telegramClient.simpleMessage(DictionaryUtil.getDictionaryValue(TABLE_BOOKED), message);
     }
 }
