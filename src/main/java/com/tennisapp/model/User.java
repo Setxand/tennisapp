@@ -16,23 +16,23 @@ import javax.persistence.Id;
 @NoArgsConstructor
 public class User {
 
-    public enum UserStatus {
-        ROOM_CONNECTION_STATUS,
-        LOGIN
-    }
+	public enum UserStatus {
+		ROOM_CONNECTION_STATUS,
+		LOGIN
+	}
 
-    @Id
-    private Integer chatId;
-    private String tennisId;
-    private String name;
+	@Id
+	private Integer chatId;
+	private String tennisId;
+	private String name;
 
-    private String login;
-    private String password;
+	private String login;
+	private String password;
 
-    @Length(max = 600)
-    private String loginCookie;
+	@Length(max = 600)
+	private String loginCookie;
 
-    @Enumerated(EnumType.STRING)
-    private UserStatus status;
+	@Enumerated(EnumType.STRING)
+	private UserStatus status;
 
 }

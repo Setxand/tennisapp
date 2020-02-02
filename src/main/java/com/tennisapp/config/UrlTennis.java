@@ -11,11 +11,11 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 public class UrlTennis {
 
-    private String loginUrl;
-    private String bookingUrl;
-    private String showTableUrl;
-    private String getProfileUrl;
-    private String acceptInvitationUrl;
-    private String cancelGameUrl;
+	private String loginUrl;
+	private String bookingUrl;
+	private String showTableUrl;
+	private String getProfileUrl;
+	private String acceptInvitationUrl;
+	private String cancelGameUrl;
 
 }

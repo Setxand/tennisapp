@@ -10,11 +10,11 @@ import telegram.Update;
 @RestController
 public class Controller {
 
-    @Autowired private DirectionService directionService;
+	@Autowired private DirectionService directionService;
 
-    @PostMapping("/webhook")
-    public void getUpdate(@RequestBody Update update) {
-        directionService.directUpdate(update);
-    }
+	@PostMapping("/webhook")
+	public void getUpdate(@RequestBody Update update) {
+		directionService.directUpdate(update);
+	}
 
 }

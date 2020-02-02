@@ -9,42 +9,44 @@ import javax.transaction.Transactional;
 @Service
 public class MessageService {
 
-    private final CommandService commandService;
+	private final CommandService commandService;
 
-    public MessageService(CommandService commandService) {
-        this.commandService = commandService;
-    }
+	public MessageService(CommandService commandService) {
+		this.commandService = commandService;
+	}
 
-    @Transactional
-    public void messageFromBot(Message message, User user) {
+	@Transactional
+	public void messageFromBot(Message message, User user) {
 
-        if (message.getText().contains("/")) {
-            commandService.commandToBot(message, user);
+		if (message.getText().contains("/")) {
+			commandService.commandToBot(message, user);
 
-        } else if (user.getStatus() != null) {
-            checkByStatus(message, user);
-        }
-    }
+		} else if (user.getStatus() != null) {
+			checkByStatus(message, user);
+		}
+	}
 
-    private void checkByStatus(Message message, User user) {
+	private void checkByStatus(Message message, User user) {
 
-        switch (user.getStatus()) {
-            case LOGIN: loginFinalStep(message, user);
-            break;
+		switch (user.getStatus()) {
+			case LOGIN:
+				loginFinalStep(message, user);
+				break;
 
-            default: throw new RuntimeException();
-        }
+			default:
+				throw new RuntimeException();
+		}
 
-    }
+	}
 
-    private void loginFinalStep(Message message, User user) {
-        String[] credentials = message.getText().split(" ");
+	private void loginFinalStep(Message message, User user) {
+		String[] credentials = message.getText().split(" ");
 
-        user.setLogin(credentials[0].trim());
-        user.setPassword(credentials[1].trim());
+		user.setLogin(credentials[0].trim());
+		user.setPassword(credentials[1].trim());
 
-        commandService.login(message, user);
+		commandService.login(message, user);
 
-        user.setStatus(null);
-    }
+		user.setStatus(null);
+	}
 }

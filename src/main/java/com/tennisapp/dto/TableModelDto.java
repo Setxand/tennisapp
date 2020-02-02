@@ -5,39 +5,46 @@ import lombok.Getter;
 
 import java.util.List;
 
+@Getter
 public class TableModelDto {
 
-    @JsonProperty("Queue")
-    public List<QueueDto> queue;
+	@JsonProperty("Queue")
+	private List<QueueDto> queue;
 
-    @JsonProperty("NowPlaying")
-    public NowPlaying nowPlaying;
+	@JsonProperty("NowPlaying")
+	private NowPlaying nowPlaying;
 
-    public static class QueueDto  {
+	@Getter
+	public static class QueueDto {
 
-        @JsonProperty("Players")
-        public List<Player> Players;
+		@JsonProperty("Players")
+		private List<Player> Players;
 
-    }
+	}
 
-    public static class NowPlaying {
+	@Getter
+	public static class NowPlaying {
 
-        @JsonProperty("IsAccepted")
-        public boolean isAccepted;
+		@JsonProperty("IsAccepted")
+		private boolean isAccepted;
 
-        @JsonProperty("Players")
-        public List<Player> players;
+		@JsonProperty("Players")
+		private List<Player> players;
 
-        @JsonProperty("Id")
-        public String id;
-    }
+		@JsonProperty("Id")
+		private String id;
 
-    public static class Player {
+		@JsonProperty("TimePlayingMs")
+		private Integer timePlayingMs;
+	}
 
-        @JsonProperty("Id")
-        public String id;
+	@Getter
+	public static class Player {
 
-        @JsonProperty("Name")
-        public String name;
-    }
+		@JsonProperty("Id")
+		private String id;
+
+		@JsonProperty("Name")
+		private String name;
+	}
 }
