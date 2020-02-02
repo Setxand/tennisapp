@@ -47,6 +47,9 @@ public class CommandService {
 				cancelGame(message, user);
 				break;
 
+			case "/checkorder": tennisService.sendQueueToCurrentUser(message, user);
+				break;
+
 			default:
 				throw new RuntimeException();
 		}

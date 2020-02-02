@@ -9,6 +9,7 @@ public enum DictionaryKeysConfig {
 	USER_ID_INVALID,
 	GAME_CANCELLED,
 	GAME_STARTED,
-	ORDER_MESSAGE
+	ORDER_MESSAGE,
+	TIME_TO_GO
 
 }
