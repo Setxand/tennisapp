@@ -15,12 +15,12 @@ import static com.tennisapp.config.DictionaryKeysConfig.*;
 @Service
 public class CommandService {
 
-	private static final String LOGIN = "/login";
-	private static final String START = "/start";
-	private static final String BOOK_TABLE = "/booktable";
-	private static final String RESET_CREDS = "/reentercredentials";
-	private static final String CANCEL_GAME = "/cancelgame";
-	private static final String CHECK_ORDER = "/checkorder";
+	public static final String LOGIN = "/login";
+	public static final String START = "/start";
+	public static final String BOOK_TABLE = "/booktable";
+	public static final String RESET_CREDS = "/reentercredentials";
+	public static final String CANCEL_GAME = "/cancelgame";
+	public static final String CHECK_ORDER = "/checkorder";
 
 	private final TelegramClient telegramClient;
 	private final TennisService tennisService;

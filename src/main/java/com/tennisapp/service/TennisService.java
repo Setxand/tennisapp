@@ -17,8 +17,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.tennisapp.config.DictionaryKeysConfig.*;
+import static com.tennisapp.service.CommandService.CHECK_ORDER;
 
 @Service
 public class TennisService {
@@ -68,6 +70,9 @@ public class TennisService {
 		if (!tennisClient.cancelGame(user.getLoginCookie())) {
 			throw new BotException(DictionaryUtil.getDictionaryValue(CANT_CANCEL), message);
 		}
+
+		sleep(5000);
+		sendQueueToUsers();
 	}
 
 	public void sendQueueToUsers() {
@@ -106,18 +111,34 @@ public class TennisService {
 
 	public void sendQueueToCurrentUser(Message message, User user) {
 		TableModelDto tableModel = tennisClient.getTableModel(userService.getUserAdminCookie());
+
+		if (tableModel.getQueue().isEmpty()) {
+			telegramClient.simpleMessage(DictionaryUtil.getDictionaryValue(TIME_TO_GO), message);
+		} else {
+			sendQueue(message, tableModel, user);
+		}
+	}
+
+	private void sendQueue(Message message, TableModelDto tableModel, User user) {
+		if (message.getText().equals(CHECK_ORDER)) {
+			StringBuilder stringBuilder = new StringBuilder();
+			AtomicInteger counter = new AtomicInteger(0);
+
+			tableModel.getQueue().forEach(q -> {
+				stringBuilder.append("Order").append(counter.incrementAndGet()).append(" - ");
+				stringBuilder.append(q.getPlayers().get(FIRST_PLAYER).getName()).append("\n");
+			});
+			telegramClient.simpleMessage(stringBuilder.toString(), creteTelegramMessage(user.getChatId()));
+		}
+
 		TableModelDto.NowPlaying nowPlaying = tableModel.getNowPlaying();
 
 		long nowPlayingTime = TimeUnit.MILLISECONDS.toMinutes(nowPlaying.getTimePlayingMs());
 		String name = nowPlaying.getPlayers().get(0).getName();
 
-		if (tableModel.getQueue().isEmpty()) {
-			telegramClient.simpleMessage(DictionaryUtil.getDictionaryValue(TIME_TO_GO), message);
-		} else {
-			Map<String, Integer> queueMap = createQueueMap(tableModel.getQueue());
-			telegramClient.simpleMessage(String.format(DictionaryUtil.getDictionaryValue(ORDER_MESSAGE),
-					queueMap.get(user.getTennisId()), name, nowPlayingTime), creteTelegramMessage(user.getChatId()));
-		}
+		Map<String, Integer> queueMap = createQueueMap(tableModel.getQueue());
+		telegramClient.simpleMessage(String.format(DictionaryUtil.getDictionaryValue(ORDER_MESSAGE),
+				queueMap.get(user.getTennisId()), name, nowPlayingTime), message);
 	}
 
 	private void sleep(int i) {
