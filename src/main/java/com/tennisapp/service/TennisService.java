@@ -4,6 +4,7 @@ import com.tennisapp.client.Platform;
 import com.tennisapp.client.TelegramClient;
 import com.tennisapp.client.TennisClient;
 import com.tennisapp.dto.TableModelDto;
+import com.tennisapp.exception.BotException;
 import com.tennisapp.model.User;
 import com.tennisapp.util.DictionaryUtil;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -48,11 +49,20 @@ public class TennisService {
 	public void bookTable(Message message, User user) {
 		tennisClient.bookTable(message, user.getLoginCookie());
 		telegramClient.simpleMessage(DictionaryUtil.getDictionaryValue(TABLE_BOOKED), message);
+
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			throw new RuntimeException();
+		}
+
 		sendQueueToCurrentUser(message, user);
 	}
 
-	public void cancelGame(User user) {
-		tennisClient.cancelGame(user.getLoginCookie());
+	public void cancelGame(Message message, User user) {
+		if (!tennisClient.cancelGame(user.getLoginCookie())) {
+			throw new BotException(DictionaryUtil.getDictionaryValue(CANT_CANCEL), message);
+		}
 	}
 
 	@Scheduled(fixedRate = 600000)
@@ -60,10 +70,9 @@ public class TennisService {
 		TableModelDto tableModel = tennisClient.getTableModel(userService.getUserAdminCookie());
 		List<TableModelDto.QueueDto> queue = tableModel.getQueue();
 
-		Map<String, Integer> queueMap = new HashMap<>();
 
 		if (!queue.isEmpty()) {
-			setUpQueueMap(queue, queueMap);
+			Map<String, Integer> queueMap = createQueueMap(queue);
 
 			long nowPlayingTime = TimeUnit.MILLISECONDS.toMinutes(tableModel.getNowPlaying().getTimePlayingMs());
 			userService.findUsersByTennisId(queueMap.keySet()).forEach(u -> {
@@ -97,8 +106,10 @@ public class TennisService {
 		if (tableModel.getQueue().isEmpty()) {
 			telegramClient.simpleMessage(DictionaryUtil.getDictionaryValue(TIME_TO_GO), message);
 		} else {
+			Map<String, Integer> queueMap = createQueueMap(tableModel.getQueue());
+
 			telegramClient.simpleMessage(String.format(DictionaryUtil.getDictionaryValue(ORDER_MESSAGE),
-					user.getTennisId(), nowPlayingTime), creteTelegramMessage(user.getChatId()));
+					queueMap.get(user.getTennisId()), nowPlayingTime), creteTelegramMessage(user.getChatId()));
 		}
 	}
 
@@ -108,7 +119,8 @@ public class TennisService {
 		return message;
 	}
 
-	private void setUpQueueMap(List<TableModelDto.QueueDto> queue, Map<String, Integer> map) {
+	private Map<String, Integer> createQueueMap(List<TableModelDto.QueueDto> queue) {
+		Map<String, Integer> map = new HashMap<>();
 		for (int i = 0; i < queue.size(); i++) {
 			List<TableModelDto.Player> players = queue.get(i).getPlayers();
 
@@ -116,5 +128,6 @@ public class TennisService {
 				map.put(players.get(order).getId(), i + 1);
 			}
 		}
+		return map;
 	}
 }

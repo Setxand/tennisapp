@@ -10,6 +10,8 @@ public enum DictionaryKeysConfig {
 	GAME_CANCELLED,
 	GAME_STARTED,
 	ORDER_MESSAGE,
-	TIME_TO_GO
+	TIME_TO_GO,
+	SYSTEM_ERROR,
+	CANT_CANCEL
 
 }

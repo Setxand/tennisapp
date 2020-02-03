@@ -85,10 +85,11 @@ public class TennisClient {
 				.exchange(urlTennis.getAcceptInvitationUrl(), HttpMethod.POST, requestBody, Void.class);
 	}
 
-	public void cancelGame(String loginCookie) {
+	public Boolean cancelGame(String loginCookie) {
 		HttpEntity<Object> requestObject = createEntityWithHeaders(null, loginCookie);
 
-		restTemplate.exchange(urlTennis.getCancelGameUrl(), HttpMethod.POST, requestObject, Void.class).getBody();
+		return restTemplate
+				.exchange(urlTennis.getCancelGameUrl(), HttpMethod.POST, requestObject, Boolean.class).getBody();
 	}
 
 	private HttpEntity<Object> createEntityWithHeaders(HttpEntity body, String cookie) {
