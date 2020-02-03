@@ -31,7 +31,6 @@ public class UserService {
 		return userRepository.findById(message.getChat().getId()).orElseGet(() -> {
 			User user = new User();
 			user.setChatId(message.getChat().getId());
-			user.setName(message.getFrom().getFirstName() + " " + message.getFrom().getLastName());
 			return userRepository.saveAndFlush(user);
 		});
 	}

@@ -24,8 +24,10 @@ import static com.tennisapp.config.DictionaryKeysConfig.*;
 public class TennisService {
 
 	private static final int FIRST_PLAYER = 0;
-	private static final String ID_PROP = "Id";
 	private static final String END_OF_COOKIE = ";";
+	private static final String ID_PROFILE_PROP = "Id";
+	private static final String FIRST_NAME_PROFILE_PROP = "FName";
+	private static final String LAST_NAME_PROFILE_PROP = "LName";
 
 	private final TennisClient tennisClient;
 	private final UserService userService;
@@ -40,21 +42,24 @@ public class TennisService {
 	@Transactional
 	public void login(User user) {
 		String loginCookie = tennisClient.login(user.getLogin(), user.getPassword());
-		String tennisUserId = tennisClient.getProfileId(loginCookie).get(ID_PROP).toString();
+		Map<String, Object> profileMap = tennisClient.getProfile(loginCookie);
 
 		user.setLoginCookie(loginCookie.substring(0, loginCookie.indexOf(END_OF_COOKIE)));
-		user.setTennisId(tennisUserId);
+		user.setTennisId(profileMap.get(ID_PROFILE_PROP).toString());
+
+		String name = new StringBuilder()
+				.append(profileMap.get(FIRST_NAME_PROFILE_PROP).toString())
+				.append(" ")
+				.append(profileMap.get(LAST_NAME_PROFILE_PROP)).toString();
+
+		user.setName(name);
 	}
 
 	public void bookTable(Message message, User user) {
 		tennisClient.bookTable(message, user.getLoginCookie());
 		telegramClient.simpleMessage(DictionaryUtil.getDictionaryValue(TABLE_BOOKED), message);
 
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			throw new RuntimeException();
-		}
+		sleep(5000);
 
 		sendQueueToCurrentUser(message, user);
 	}
@@ -65,7 +70,6 @@ public class TennisService {
 		}
 	}
 
-	@Scheduled(fixedRate = 600000)
 	public void sendQueueToUsers() {
 		TableModelDto tableModel = tennisClient.getTableModel(userService.getUserAdminCookie());
 		List<TableModelDto.QueueDto> queue = tableModel.getQueue();
@@ -95,21 +99,32 @@ public class TennisService {
 			telegramClient.simpleMessage(DictionaryUtil
 					.getDictionaryValue(GAME_STARTED), creteTelegramMessage(user.getChatId()));
 
+			sleep(5000);
 			sendQueueToUsers();
 		}
 	}
 
 	public void sendQueueToCurrentUser(Message message, User user) {
 		TableModelDto tableModel = tennisClient.getTableModel(userService.getUserAdminCookie());
-		long nowPlayingTime = TimeUnit.MILLISECONDS.toMinutes(tableModel.getNowPlaying().getTimePlayingMs());
+		TableModelDto.NowPlaying nowPlaying = tableModel.getNowPlaying();
+
+		long nowPlayingTime = TimeUnit.MILLISECONDS.toMinutes(nowPlaying.getTimePlayingMs());
+		String name = nowPlaying.getPlayers().get(0).getName();
 
 		if (tableModel.getQueue().isEmpty()) {
 			telegramClient.simpleMessage(DictionaryUtil.getDictionaryValue(TIME_TO_GO), message);
 		} else {
 			Map<String, Integer> queueMap = createQueueMap(tableModel.getQueue());
-
 			telegramClient.simpleMessage(String.format(DictionaryUtil.getDictionaryValue(ORDER_MESSAGE),
-					queueMap.get(user.getTennisId()), nowPlayingTime), creteTelegramMessage(user.getChatId()));
+					queueMap.get(user.getTennisId()), name, nowPlayingTime), creteTelegramMessage(user.getChatId()));
+		}
+	}
+
+	private void sleep(int i) {
+		try {
+			Thread.sleep(i);
+		} catch (InterruptedException e) {
+			throw new RuntimeException();
 		}
 	}
 

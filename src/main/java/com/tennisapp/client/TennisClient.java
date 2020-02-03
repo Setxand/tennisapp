@@ -67,7 +67,7 @@ public class TennisClient {
 				.getBody();
 	}
 
-	public Map<String, Object> getProfileId(String cookie) {
+	public Map<String, Object> getProfile(String cookie) {
 		HttpEntity<Object> requestObject = createEntityWithHeaders(null, cookie);
 
 		return restTemplate
