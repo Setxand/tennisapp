@@ -69,7 +69,7 @@ public class CommandService {
 
 	private void checkOrder(Message message, User user) {
 		validator.validateLogin(message, user);
-		tennisService.sendQueueToCurrentUser(message, user);
+		tennisService.sendQueueList(message, user);
 	}
 
 	private void bookTable(Message message, User user) {

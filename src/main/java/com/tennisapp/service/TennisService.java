@@ -16,6 +16,7 @@ import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -30,6 +31,9 @@ public class TennisService {
 	private static final String ID_PROFILE_PROP = "Id";
 	private static final String FIRST_NAME_PROFILE_PROP = "FName";
 	private static final String LAST_NAME_PROFILE_PROP = "LName";
+	private static final String ORDER_PROP = "Order";
+	private static final String SPLITTER = " - ";
+	private static final String NEXT_ROW = "\n";
 
 	private final TennisClient tennisClient;
 	private final UserService userService;
@@ -61,9 +65,9 @@ public class TennisService {
 		tennisClient.bookTable(message, user.getLoginCookie());
 		telegramClient.simpleMessage(DictionaryUtil.getDictionaryValue(TABLE_BOOKED), message);
 
-		sleep(5000);
+		sleep(2000);
 
-		sendQueueToCurrentUser(message, user);
+		checkQueueAndSendQueueNumberForOneUser(message, user);
 	}
 
 	public void cancelGame(Message message, User user) {
@@ -71,25 +75,8 @@ public class TennisService {
 			throw new BotException(DictionaryUtil.getDictionaryValue(CANT_CANCEL), message);
 		}
 
-		sleep(5000);
-		sendQueueToUsers();
-	}
-
-	public void sendQueueToUsers() {
-		TableModelDto tableModel = tennisClient.getTableModel(userService.getUserAdminCookie());
-		List<TableModelDto.QueueDto> queue = tableModel.getQueue();
-
-
-		if (!queue.isEmpty()) {
-			Map<String, Integer> queueMap = createQueueMap(queue);
-
-			long nowPlayingTime = TimeUnit.MILLISECONDS.toMinutes(tableModel.getNowPlaying().getTimePlayingMs());
-			userService.findUsersByTennisId(queueMap.keySet()).forEach(u -> {
-
-				telegramClient.simpleMessage(String.format(DictionaryUtil.getDictionaryValue(ORDER_MESSAGE),
-						queueMap.get(u.getTennisId()), nowPlayingTime), creteTelegramMessage(u.getChatId()));
-			});
-		}
+		sleep(2000);
+		sendQueueToAllUsers();
 	}
 
 	@Scheduled(fixedRate = 120000)
@@ -104,39 +91,77 @@ public class TennisService {
 			telegramClient.simpleMessage(DictionaryUtil
 					.getDictionaryValue(GAME_STARTED), creteTelegramMessage(user.getChatId()));
 
-			sleep(5000);
-			sendQueueToUsers();
+			sleep(2000);
+			sendQueueToAllUsers();
 		}
 	}
 
-	public void sendQueueToCurrentUser(Message message, User user) {
+	public void checkQueueAndSendQueueNumberForOneUser(Message message, User user) {
 		TableModelDto tableModel = tennisClient.getTableModel(userService.getUserAdminCookie());
 
 		if (tableModel.getQueue().isEmpty()) {
 			telegramClient.simpleMessage(DictionaryUtil.getDictionaryValue(TIME_TO_GO), message);
 		} else {
-			sendQueue(message, tableModel, user);
+			sendUserCurrentQueueNumber(message, tableModel, user, null);
 		}
 	}
 
-	private void sendQueue(Message message, TableModelDto tableModel, User user) {
-		if (message.getText().equals(CHECK_ORDER)) {
+	public void sendQueueList(Message message, User user) {
+		TableModelDto tableModel = tennisClient.getTableModel(userService.getUserAdminCookie());
+		TableModelDto.NowPlaying nowPlaying = tableModel.getNowPlaying();
+
 			StringBuilder stringBuilder = new StringBuilder();
 			AtomicInteger counter = new AtomicInteger(0);
 
+		Optional<User> nowPlayingUser = userService
+				.getUserByTennisIdOptional(nowPlaying.getPlayers().get(FIRST_PLAYER).getId());
+
+		boolean requestByNowPlaying = nowPlayingUser.isPresent() &&
+				message.getChat().getId().equals(nowPlayingUser.get().getChatId());
+
+		long nowPlayingTime = TimeUnit.MILLISECONDS.toMinutes(nowPlaying.getTimePlayingMs());
+			stringBuilder.append("Now playing: ").append(nowPlaying.getPlayers().get(0).getName());
+
+			if (requestByNowPlaying)
+				stringBuilder.append("(You)");
+
+			stringBuilder.append(SPLITTER)
+					.append(nowPlayingTime)
+					.append(" Minutes")
+					.append(NEXT_ROW);
+
 			tableModel.getQueue().forEach(q -> {
-				stringBuilder.append("Order").append(counter.incrementAndGet()).append(" - ");
-				stringBuilder.append(q.getPlayers().get(FIRST_PLAYER).getName()).append("\n");
+				stringBuilder.append(ORDER_PROP).append(counter.incrementAndGet()).append(SPLITTER);
+				stringBuilder.append(q.getPlayers().get(FIRST_PLAYER).getName()).append(NEXT_ROW);
 			});
 			telegramClient.simpleMessage(stringBuilder.toString(), creteTelegramMessage(user.getChatId()));
-		}
 
+	}
+
+	public void sendQueueToAllUsers() {
+		TableModelDto tableModel = tennisClient.getTableModel(userService.getUserAdminCookie());
+		List<TableModelDto.QueueDto> queue = tableModel.getQueue();
+
+		if (!queue.isEmpty()) {
+			Map<String, Integer> queueMap = createQueueMap(queue);
+
+			userService.findUsersByTennisId(queueMap.keySet()).forEach(u -> {
+				sendUserCurrentQueueNumber(creteTelegramMessage(u.getChatId()), tableModel, u, queueMap);
+			});
+
+		}
+	}
+
+	private void sendUserCurrentQueueNumber(Message message, TableModelDto tableModel, User user, Map<String, Integer> queueMap) {
 		TableModelDto.NowPlaying nowPlaying = tableModel.getNowPlaying();
 
 		long nowPlayingTime = TimeUnit.MILLISECONDS.toMinutes(nowPlaying.getTimePlayingMs());
 		String name = nowPlaying.getPlayers().get(0).getName();
 
-		Map<String, Integer> queueMap = createQueueMap(tableModel.getQueue());
+		if (queueMap == null) {
+			queueMap = createQueueMap(tableModel.getQueue());
+		}
+
 		telegramClient.simpleMessage(String.format(DictionaryUtil.getDictionaryValue(ORDER_MESSAGE),
 				queueMap.get(user.getTennisId()), name, nowPlayingTime), message);
 	}

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import telegram.Message;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.tennisapp.config.DictionaryKeysConfig.TENNIS_ID_INVALID;
@@ -47,6 +48,10 @@ public class UserService {
 	public User getUserByTennisId(String tennisId) {
 		return userRepository.findByTennisId(tennisId)
 				.orElseThrow(() -> new IllegalArgumentException(DictionaryUtil.getDictionaryValue(TENNIS_ID_INVALID)));
+	}
+
+	public Optional<User> getUserByTennisIdOptional(String tennisId) {
+		return userRepository.findByTennisId(tennisId);
 	}
 
 	public List<User> findUsersByTennisId(Set<String> keySet) {
